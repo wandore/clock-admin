@@ -2,11 +2,12 @@ import service from '@/libs/api.request'
 
 export const login = ({ userName, password }) => {
   const data = {
-    'user_name': userName,
-    'user_pwd': password
+    'username': userName,
+    'password': password
   }
-  return service.request({
-    url: 'login',
+
+  return service.postreq({
+    url: 'user/login',
     data: data,
     method: 'post'
   })

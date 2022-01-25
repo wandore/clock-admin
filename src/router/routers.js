@@ -47,25 +47,25 @@ export default [
     ]
   },
   {
-    path: '/container',
-    name: 'container',
+    path: '/workflow',
+    name: 'workflow',
     component: Main,
     children: [
       {
-        path: 'container-list',
-        name: 'container-list',
+        path: 'workflow-list',
+        name: 'workflow-list',
         meta: {
           icon: 'md-git-pull-request',
-          title: '容器列表'
+          title: '工作流列表'
         },
         component: () => import('@/view/container/list.vue')
       },
       {
-        path: 'container-config',
-        name: 'container-config',
+        path: 'workflow-config',
+        name: 'workflow-config',
         meta: {
           icon: 'md-analytics',
-          title: '容器配置',
+          title: '工作流配置',
           hideInMenu: true,
           hideInBread: true,
           notCache: true

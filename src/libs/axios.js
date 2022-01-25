@@ -81,5 +81,14 @@ class HttpRequest {
     this.interceptors(instance, options.url)
     return instance(options)
   }
+  postreq (options) {
+    const instance = axios.create({
+      baseURL: this.baseUrl,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    return instance(options)
+  }
 }
 export default HttpRequest

@@ -27,8 +27,8 @@
     </div>
     <div>
       <Table border :columns="columns" :data="containers">
-        <template slot-scope="{ row }" slot="disable">
-          <i-switch size="large" v-model="row.disable" @on-change="changeContainer(row)">
+        <template slot-scope="{ row }" slot="is_cron">
+          <i-switch size="large" v-model="row.is_cron">
           </i-switch>
         </template>
         <template slot-scope="{ row }" slot="action">
@@ -46,20 +46,28 @@
       </div>
     </div>
     <div>
-      <Modal v-model="showPut" title="编辑" @on-ok="updateContainer">
+      <Modal v-model="showPut" title="编辑" @on-ok="createContainer">
         <i-form ref="form" :model="container" :label-width="80">
-          <FormItem label="容器ID">
-            <i-input v-model="container.cid" disabled></i-input>
-          </FormItem>
-          <FormItem label="任务描述">
+          <FormItem label="工作流名">
             <i-input v-model="container.name"></i-input>
           </FormItem>
-
-          <FormItem label="表达式">
-            <i-input v-model="container.expression"></i-input>
+          <FormItem label="描述">
+            <i-input v-model="container.desc"></i-input>
           </FormItem>
-          <FormItem label="禁用任务">
-            <i-switch v-model="container.disable"></i-switch>
+          <FormItem label="是否定时">
+            <i-switch v-model="container.is_cron"></i-switch>
+          </FormItem>
+          <FormItem label="cron表达式">
+            <i-input v-model="container.crontab"></i-input>
+          </FormItem>
+          <FormItem label="并发数">
+            <i-input v-model="container.concurrent"></i-input>
+          </FormItem>
+          <FormItem label="失败限制">
+            <i-input v-model="container.failed_limit"></i-input>
+          </FormItem>
+          <FormItem label="超时控制">
+            <i-input v-model="container.timeout"></i-input>
           </FormItem>
         </i-form>
       </Modal>
@@ -68,7 +76,7 @@
 </template>
 
 <script>
-import { getContainers, putContainer, deleteContainer, runContainer } from '../../api/container'
+import { getContainers, putContainer, deleteContainer, runContainer, createWorkflow } from '../../api/container'
 import { getDateTimeStr } from '@/libs/util'
 
 export default {
@@ -84,17 +92,23 @@ export default {
       page: {
         expression: '',
         name: '',
-        order: 'cid',
+        order: 'workflow_id',
         status: 0,
         total: 0,
         index: 1,
         count: 20
       },
       container: {
-        cid: 0,
+        workflow_id: '',
         name: '',
-        expression: '',
-        disable: false
+        desc: '',
+        status: '',
+        type: 0,
+        is_cron: false,
+        crontab: '',
+        concurrent: 1,
+        failed_limit: 1,
+        timeout: 60
       },
       statusBtn: {
         1: {
@@ -133,47 +147,64 @@ export default {
       search: '',
       columns: [
         {
+          title: 'ID',
+          key: 'workflow_id',
+          width: '150',
+          tooltip: true
+        },
+        {
+          title: '工作流名',
+          key: 'name',
+          width: '100',
+          tooltip: true
+        },
+        {
+          title: '描述',
+          key: 'desc',
+          width: '100',
+          tooltip: true
+        },
+        {
           title: '状态',
           key: 'status',
-          width: '120',
-          render: (h, params) => {
-            let status = params.row.status
-            let p = this.statusBtn[status.toString()]
-            return h('Button', {
-              props: p.props
-            }, p.text)
-          }
+          width: '90'
         },
         {
-          title: '容器ID',
-          key: 'cid',
-          width: '80'
-        },
-        {
-          title: '操作时间',
-          key: 'update_at',
+          title: '创建时间',
+          key: 'created_at',
+          width: '100',
           render: (h, params) => {
-            let status = params.row.update_at
+            let status = params.row.created_at
             console.log(status)
             let p = getDateTimeStr(status)
             return h('Span', {}, p)
           }
         },
         {
-          title: '禁用任务',
-          key: 'disable',
-          slot: 'disable',
+          title: '是否定时',
+          key: 'is_cron',
+          slot: 'is_cron',
           width: '100'
         },
-
         {
-          title: '容器名',
-          key: 'name',
-          tooltip: true
+          title: 'cron表达式',
+          key: 'crontab',
+          width: '120'
         },
         {
-          title: '表达式',
-          key: 'expression'
+          title: '并发数',
+          key: 'concurrent',
+          width: '80'
+        },
+        {
+          title: '失败限制',
+          key: 'failed_limit',
+          width: '90'
+        },
+        {
+          title: '超时控制',
+          key: 'timeout',
+          width: '90'
         },
         {
           title: '操作',
@@ -188,14 +219,27 @@ export default {
 
   methods: {
     loadPage: function () {
+      getContainers().then(data => {
+        this.containers = data.data.data
+        this.page.total = 20
+      })
+    },
+    loadPageByCondition: function () {
       getContainers(this.page).then(data => {
-        this.containers = data.items
-        this.page.total = data.page.total
+        this.containers = data.data
+        this.page.total = 20
       })
     },
     // 新增or修改任务
     updateContainer: function () {
       putContainer(this.container).then(() => {
+        this.$Message.success('操作成功~')
+        this.loadPage()
+      }
+      )
+    },
+    createContainer: function () {
+      createWorkflow(this.container).then(() => {
         this.$Message.success('操作成功~')
         this.loadPage()
       }
@@ -208,10 +252,14 @@ export default {
     },
     windowAddContainer: function () {
       this.container = {
-        cid: 0,
+        workflow_id: '',
         name: '',
-        expression: '',
-        disable: false
+        desc: '',
+        is_cron: false,
+        crontab: '',
+        concurrent: 1,
+        failed_limit: 1,
+        timeout: 60
       }
       this.showPut = true
     },
@@ -243,7 +291,7 @@ export default {
       })
     },
     remove: function (container) {
-      deleteContainer(container.cid).then(() => {
+      deleteContainer(container.workflow_id).then(() => {
         this.$Message.success('删除成功~')
         this.loadPage()
       })
@@ -256,7 +304,7 @@ export default {
       )
     },
     viewConfig: function (container) {
-      this.$router.push({ name: 'container-config', params: { cid: container.cid } })
+      this.$router.push({ name: 'workflow-config', params: { workflow_id: container.workflow_id } })
     }
   }
 }

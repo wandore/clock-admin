@@ -1,10 +1,9 @@
 import service from '@/libs/api.request'
 
-export const getContainers = (data) => {
-  return service.request({
-    url: 'container',
-    method: 'get',
-    params: data
+export const getContainers = () => {
+  return service.postreq({
+    url: 'workflow/list',
+    method: 'post'
   })
 }
 
@@ -12,6 +11,17 @@ export const putContainer = (data) => {
   return service.request({
     url: 'container',
     method: 'put',
+    data: data
+  })
+}
+
+export const createWorkflow = (data) => {
+  if (data.is_cron) {
+    data.type = 1
+  }
+  return service.postreq({
+    url: 'workflow/create',
+    method: 'post',
     data: data
   })
 }

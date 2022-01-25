@@ -2,7 +2,7 @@ export default {
   /**
    * @description 配置显示在浏览器标签的title
    */
-  title: 'clock调度中心',
+  title: 'myflow',
   /**
    * @description token在Cookie中存储的天数，默认1天
    */
@@ -18,13 +18,11 @@ export default {
    */
   baseUrl: {
     // dev: 'https://www.easy-mock.com/mock/5add9213ce4d0e69998a6f51/iview-admin/',
-    dev: 'http://127.0.0.1:9528/v1',
-    pro: 'v1'
+    dev: 'http://9.135.89.205:8050/'
   },
 
   wsHost: {
-    dev: '127.0.0.1:9528/v1',
-    pro: 'v1'
+    dev: '9.135.89.205:8050/'
   },
   /**
    * @description 默认打开的首页的路由name值，默认为home

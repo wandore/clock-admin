@@ -1,10 +1,14 @@
 import service from '@/libs/api.request'
 
-export const getRelations = (data) => {
-  return service.request({
-    url: 'relation',
-    method: 'get',
-    params: { cid: data }
+export const getRelations = (workflow_id) => {
+  const data = {
+    'workflow_id': workflow_id
+  }
+
+  return service.postreq({
+    url: 'relation/get',
+    data: data,
+    method: 'post'
   })
 }
 

@@ -8,11 +8,22 @@ export const getTasks = (data) => {
   })
 }
 
-export const getTask = (data) => {
+export const getTask = (job_id) => {
+  const data = {
+    'job_id': job_id
+  }
+
+  return service.postreq({
+    url: 'job/get',
+    data: data,
+    method: 'post'
+  })
+  /*
   return service.request({
     url: 'task/' + data,
     method: 'get'
   })
+   */
 }
 
 export const putTask = (data) => {

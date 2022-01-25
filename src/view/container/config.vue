@@ -32,8 +32,26 @@
       </p>
 
       <i-form ref="form" :model="task" :label-width="80">
+        <FormItem label="任务名ID">
+          <i-input v-model="task.job_id" disabled="disabled"></i-input>
+        </FormItem>
         <FormItem label="任务名">
           <i-input v-model="task.name"></i-input>
+        </FormItem>
+        <FormItem label="任务描述">
+          <i-input v-model="task.desc"></i-input>
+        </FormItem>
+        <FormItem label="目标分组">
+          <i-input v-model="task.host_list"></i-input>
+        </FormItem>
+        <FormItem label="任务步骤">
+          <i-input v-model="task.steps"></i-input>
+        </FormItem>
+        <FormItem label="并发度">
+          <i-input v-model="task.concurrent"></i-input>
+        </FormItem>
+        <FormItem label="最大失败数">
+          <i-input v-model="task.failed_limit"></i-input>
         </FormItem>
 
         <FormItem label="bash命令">
@@ -100,27 +118,19 @@ export default {
         disable: false
       },
       task: {
-        tid: 0,
+        job_id: '',
+        workflow_id: '',
         name: '',
-        expression: '',
-        cid: 1,
-        command: '',
-        timeout: 0,
+        desc: '',
+        status: '',
+        host_list: [],
         log_enable: false,
-        disable: false,
-        directory: '',
         point_x: 0,
         point_y: 0
       },
       relation: {
-        tid: 0,
-        next_tid: 0
-      },
-      status: {
-        1: '等待',
-        2: '开始',
-        3: '成功',
-        4: '失败'
+        src_id: 0,
+        dst_tid: 0
       },
       disableTid: true,
       btnText: '新增'
@@ -150,18 +160,21 @@ export default {
           tmp.y = node.y
         }
         tmp.type = this.getNodeTitle(node)
-        tmp.label = node.name
+        tmp.label = node.status
         arr.push(tmp)
       }
+
+      console.log(arr)
+
       return arr
     },
 
     getNodeTitle: function (node) {
       let texts = []
-      texts.push('[')
-      texts.push(node.id.toString())
-      texts.push(']')
-      texts.push(this.status[node.status])
+      // texts.push('[')
+      texts.push(node.name)
+      // texts.push(']')
+      // texts.push(node.status)
       return texts.join('')
     },
 
@@ -170,10 +183,10 @@ export default {
       for (let i = 0; i < links.length; i++) {
         let temp = {}
         let link = links[i]
-        temp.id = link.id
-        temp.from = link.tid
-        temp.rid = link.id
-        temp.to = link.next_tid
+        // temp.id = link.id
+        // temp.rid = link.id
+        temp.from = link.src_id
+        temp.to = link.dst_id
         arr.push(temp)
       }
       return arr
@@ -207,7 +220,7 @@ export default {
       this.isAdd = false
       this.btnText = '更新'
       getTask(taskid).then((data) => {
-        this.task = data
+        this.task = data.data.data
       })
     },
 
@@ -264,15 +277,16 @@ export default {
       })
     },
     loadData: function () {
-      let cid = this.$route.params.cid
-      this.task.cid = cid
-      this.cid = cid
-      getRelations(cid).then(data => {
-        if (!this.isEmpty(data.nodes)) {
-          this.config.nodes = this.convertNodes(data.nodes)
+      let workflow_id = this.$route.params.workflow_id
+      this.task.workflow_id = workflow_id
+      this.workflow_id = workflow_id
+      getRelations(workflow_id).then(data => {
+        if (!this.isEmpty(data.data.data.nodes)) {
+          console.log(data.data.data.nodes)
+          this.config.nodes = this.convertNodes(data.data.data.nodes)
         }
-        if (!this.isEmpty(data.links)) {
-          this.config.links = this.convertLinks(data.links)
+        if (!this.isEmpty(data.data.data.links)) {
+          this.config.links = this.convertLinks(data.data.data.links)
         }
       })
     }
